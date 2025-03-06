@@ -1,0 +1,691 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Ask The App</title>  
+    <style>  
+        #login_section {  
+            display: none;  
+        }  
+        #chat_section {  
+            display: block; 
+        }  
+    </style> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script> 
+</head>  
+<body>    
+    <div id="container">    
+        <div id="chat_section"> 
+            <div class="centered-content">  
+                <p class="wlcm_msg">Hello!! Welcome to <strong>Ask the</strong>App.. </p>   
+                <input type="text" id="user_input" placeholder="Please type your question or url here." autocomplete="on">
+                <input type="text" id="num_questions" class="short-input" placeholder="Please type number of question here." autocomplete="on"> 
+            </div>
+            <div class="button-row">
+                <button onclick="send_message()">Generate Quiz</button>    
+                <button onclick="export_response()">Export Quiz</button> 
+                <button id="clear_button" onclick="clear_response()" style="display: none;">Clear</button>
+                <!-- <button onclick="logout()">Logout</button> -->
+            </div>
+            <div id="loader" style="display: none;">
+                <div class="spinner"></div>
+                <p>Please wait while we generate Summary and FAQ's for you!!</p>
+            </div>
+            <div id="pre_response_message"></div>  
+            <div id="token_stream" style="display: none;">  
+                <!-- token_stream content will go here -->  
+            </div>    
+            <div id="chat_history">  
+                <div class="colored-content"><h3>Conversation History:</h3></div>  
+            </div> 
+            <div id="context"></div> 
+            <div id="content"></div>   
+        </div>  
+    </div>  
+      
+    <style>   
+        body{
+            background-color: black;
+            color: whitesmoke;
+        } 
+        #container {   
+            display: flex;
+            flex-direction: column;    
+            align-items: center;    
+            justify-content: center;    
+            margin-top: 10%;    
+        }     
+        .centered-content {
+            display: flex;
+            flex-direction: column;    
+            align-items: center;    
+            justify-content: center; 
+            color: goldenrod; 
+        }
+        .wlcm_msg {
+            font-size: 24px;
+        }
+        #chat_section input::placeholder {    
+            font-size: 15px;   
+        } 
+        #chat_section input[type="text"] {
+        margin-bottom: 10px;
+        width: 500px;   
+        height: 50px;  
+        }
+
+        #chat_section .short-input {
+            width: 300px !important;  /* Reduced width for the number of questions input */
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .button-row button {
+            padding: 10px;
+            margin: 0 10px;
+            font-size: 15px;
+        }
+        #token_stream {
+            max-width: 800px;
+        }  
+        #chat_history {    
+            max-height: 800px;   
+            max-width: 1200px;  
+            overflow-y: auto;  
+            border: 2px solid goldenrod;   
+            margin-top: 50px;  
+        }  
+        .colored-content{
+            color: goldenrod;
+        }
+        #chat_history .colored-content, #chat_history p{
+            margin: 25px;
+        }
+        a {  
+            color: goldenrod;  
+        }
+        #loader {
+            display: flex;
+            flex-direction: column;  
+            align-items: center;      
+            justify-content: center;  
+            position: fixed;          
+            top: 0;                   
+            left: 0;                  
+            right: 0;                 
+            bottom: 0;                
+            background: rgba(255, 255, 255, 0.8);  
+            z-index: 1000;            
+        }       
+        #loader p {
+            color: black;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .spinner {
+            border: 8px solid black; 
+            border-top: 8px solid rgb(255, 183, 27);
+            border-radius: 50%;        
+            width: 40px;               
+            height: 40px;             
+            animation: spin 1s linear infinite; 
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+    </style>  
+
+    
+    <script>  
+        function showChatSection() {  
+            document.getElementById('login_section').style.display = 'none';  
+            document.getElementById('chat_section').style.display = 'block';  
+        }
+        
+        function showRandomPreResponseMessage() {  
+            const preResponseMessages = [  
+            "Great request! Let me dive into it and generate some quiz questions for you...",
+            "I appreciate your inquiry! Give me a moment to gather some information and create your quiz...",
+            "That's an excellent topic! Allow me a moment to investigate and provide you with some quiz questions...",
+            "Thank you for your request! I'll do some research and get back to you with a quiz shortly...",
+            "I'm glad you're interested in this topic! Let me look into that for you and get back with a quiz...",
+            "Excellent topic! Give me a few seconds to explore the subject and present you with a set of quiz questions...",
+            "Your topic piqued my interest! I'll investigate further and provide you with a set of quiz questions...",
+            "That's a thought-provoking topic! Let me take a moment to gather relevant information and give you a set of quiz questions...",
+            "Thank you for your inquiry! I'll take the time to research and ensure you receive a well-crafted quiz...",
+            "I'm excited to generate a quiz on your topic! Allow me a brief moment to conduct some research and provide you with an engaging quiz...",
+            "That is a really good topic! Let me see what I can find out and generate a quiz on it...",  
+                    ];  
+            
+            const randomMessage = preResponseMessages[Math.floor(Math.random() * preResponseMessages.length)];  
+            document.getElementById('pre_response_message').innerHTML = "<b><span style='color: lightgreen;'>Virtual Instructor:</span></b> " + randomMessage;  
+        }  
+
+  
+        function checkLoginStatus() {    
+            if (sessionStorage.getItem("access_token")) {    
+                showChatSection();    
+            } else {    
+                document.getElementById("login_section").style.display = "block";    
+                document.getElementById("chat_section").style.display = "none";    
+            }    
+        }  
+ 
+  
+
+        function generateUUID() {  
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {  
+                var r = Math.random() * 16 | 0,  
+                    v = c === 'x' ? r : (r & 0x3 | 0x8);  
+                return v.toString(16);  
+            });  
+        }
+
+        function formatText(text) {  
+            return text.replace(/\n/g, '<br>');  
+        }  
+
+        function removeDuplicateUrls(text) {  
+        const urlPattern = /\[([^\]]+)\]\(([^\)]+)\)/g;  
+        const urls = Array.from(text.matchAll(urlPattern));  
+        const uniqueUrls = new Set();  
+        
+        for (const url of urls) {  
+            if (!uniqueUrls.has(url[2])) {  
+            uniqueUrls.add(url[2]);  
+            } else {  
+            text = text.replace(url[0], url[2]);  
+            }  
+        }  
+        
+        return text;  
+        }  
+
+
+  
+        if (!sessionStorage.getItem('user_id')) {  
+            sessionStorage.setItem('user_id', generateUUID());  
+        } 
+        const user_id = sessionStorage.getItem('user_id');  
+
+        console.log("Generated user_id:", user_id);  
+        
+        const socket = io.connect(window.location.origin);  // Connect to the backend using Socket.IO  
+  
+        socket.on(`llm_response_${user_id}`, function(token) {  
+            document.getElementById('pre_response_message').innerHTML = '';  
+            document.getElementById('token_stream').innerHTML += formatText(linkify(token));  // Update the pre-response message with the received token - stream happens here! 
+            document.getElementById('clear_button').style.display = 'block'; // Show clear button
+            
+        });  
+
+        // Declare a global variable to store the final response  
+        let finalResponseGlobal = ''; 
+
+        socket.on(`llm_response_completed_${user_id}`, function(final_response) {  
+            // document.getElementById('token_stream').innerHTML = ''; // Clear the streamed text 
+            final_response = removeDuplicateUrls(final_response); // Remove duplicate URLs from the final response  
+            const user_message = document.createElement('p');
+            const bot_message = document.createElement('p');  
+            user_message.innerHTML = "<b>User:</b> " + user_input;
+            bot_message.innerHTML = "<b><span style='color: lightgreen;'>Virtual Instructor:</span></b><br> "  +  formatText(linkify(final_response)); // Use final_response sent from the backend  
+            document.getElementById('chat_history').appendChild(bot_message); // Add the final response text
+            sessionStorage.removeItem("access_token");  // Clear the JWT token after receiving the final response 
+            sessionStorage.removeItem('chatActive');  // Clear the chat session after receiving the final response 
+            document.getElementById('clear_button').style.display = 'block'; // Ensure clear button is visible
+            // Show the 'YES/NO' buttons  
+            document.getElementById('yesButton').style.display = 'block';  
+            document.getElementById('noButton').style.display = 'block';
+            // Store the final response in the global variable  
+            finalResponseGlobal = final_response; 
+            
+        }); 
+
+        async function clear_response() {
+            document.getElementById('token_stream').innerHTML = '';
+            document.getElementById('chat_history').innerHTML = '';
+            document.getElementById('user_input').innerHTML = '';
+            document.getElementById('num_questions').innerHTML = '';
+            document.getElementById('clear_button').style.display = 'none'; // Hide clear button after clearing
+}
+        
+
+     
+        async function fetchToken2() {  
+            
+                const response = await fetch("/create_token", {   
+                    method: "POST",  
+                    headers: {  
+                        "Content-Type": "application/json"  
+                    },  
+                    body: JSON.stringify({})  
+                });  
+                const data = await response.json();  
+            
+                sessionStorage.setItem("access_token", data.access_token);  
+                sessionStorage.setItem("token_type", data.type);
+            
+        }
+
+        let isLogoutClicked = false;  
+
+        // Adding this function to update the chatActive flag in localStorage  
+        function updateChatActiveFlag() {  
+            let chatCounter = parseInt(localStorage.getItem('chatCounter') || '0');  
+            if (chatCounter > 1) {  
+                sessionStorage.setItem('chatActive', 'true');  
+            } else {  
+                sessionStorage.setItem('chatActive', 'false');  
+            }  
+        }  
+        
+        // Adding this function to increment the chatCounter in localStorage  
+        function incrementChatCounter() {  
+            let chatCounter = parseInt(localStorage.getItem('chatCounter') || '0');  
+            localStorage.setItem('chatCounter', (chatCounter + 1).toString());  
+        }  
+        
+        // Adding this function to decrement the chatCounter in localStorage  
+        function decrementChatCounter() {  
+            let chatCounter = parseInt(localStorage.getItem('chatCounter') || '0');  
+            localStorage.setItem('chatCounter', (chatCounter - 1).toString());  
+        }  
+
+
+
+        // Add this function to clear the chatActive flag in localStorage  
+        function clearChatActiveFlag() {  
+            localStorage.removeItem('chatActive');  
+        } 
+
+       
+
+        async function send_message() { 
+
+            updateChatActiveFlag();
+
+            if (sessionStorage.getItem('chatActive') === 'true') {  
+                alert('You already have an active chat session in another window or tab.');
+                document.getElementById('user_input').disabled = true;  // disable the input field  
+                document.querySelector('button').disabled = true;  // disable the buttons 
+                document.getElementById('loader').style.display = 'none';
+                return;  
+            }  
+            
+
+            if (isLogoutClicked) {  
+                document.getElementById("api_key").value = "";  
+                document.getElementById("password").value = "";  
+                isLogoutClicked = false;  
+                document.getElementById('loader').style.display = 'none';
+                return;  
+            }  
+
+            // Display loader at the beginning
+            document.getElementById('loader').style.display = 'flex';
+
+            // const API_KEY = document.getElementById("api_key").value;  
+            // const PASSWORD = document.getElementById("password").value;  
+            const API_KEY = "12345"
+            const PASSWORD = "ACEGPT"
+
+            
+            if (API_KEY && PASSWORD) {  
+                await fetchToken(API_KEY, PASSWORD);  // Request a new token for every question if API_KEY and PASSWORD are provided  
+            } else {  
+                await fetchToken2();  // Request a new token for every question if API_KEY and PASSWORD are not provided  
+            }
+            
+            const user_input = document.getElementById('user_input').value;  
+            const num_questions = document.getElementById('num_questions').value;
+            const user_id = sessionStorage.getItem('user_id');  
+            const access_token = sessionStorage.getItem("access_token");  
+            const chatActive = sessionStorage.getItem('chatActive');
+        
+            showRandomPreResponseMessage();  
+            const response = await fetch('/chat', {  
+                method: 'POST',  
+                headers: {  
+                    'Content-Type': 'application/json',  
+                    'Authorization': 'Bearer ' + access_token,  
+                },  
+                body: JSON.stringify({ user_input: user_input, num_questions:num_questions, user_id: user_id, chatActive: chatActive }),  
+            });  
+        
+            const data = await response.json();  
+            document.getElementById('token_stream').innerHTML = ''; // Clear the streamed text
+            
+            const chat_history = document.getElementById('chat_history');  
+            const user_message = document.createElement('p');  
+            const bot_message = document.createElement('p');  
+        
+            user_message.innerHTML = "<b><span style='color: lightskyblue;'>User:</span></b> " + user_input;  
+
+            if (data.status === 'prohibited' || data.status === 'InvalidRequestError' || data.status === 'APIConnectionError') {
+                bot_message.innerHTML = "<b>Virtual Instructor:</b> " + data.response;
+            } else {
+                bot_message.innerHTML = "<b>Virtual Instructor:</b> " + data.response;
+            }
+            
+            // Append the user and bot messages to the chat history  
+            chat_history.appendChild(user_message);  
+            chat_history.appendChild(bot_message);  
+
+            // Scroll to the bottom of the chat history  
+            chat_history.scrollTop = chat_history.scrollHeight; 
+
+            requestAnimationFrame(() => {
+                document.getElementById('loader').style.display = 'none';  // Stop loader
+            });
+        
+            document.getElementById('user_input').value = '';  
+            sessionStorage.removeItem("access_token");  // Clear the JWT token after receiving the response
+            sessionStorage.removeItem('chatActive');
+        }
+
+        async function export_response(){
+            const response = await fetch('/download');  
+            const blob = await response.blob();  
+            let url = window.URL.createObjectURL(blob);  
+            let a = document.createElement('a');  
+            a.href = url;  
+            a.download = 'quiz_responses.xlsx';  
+            a.click();  
+
+        }
+
+
+        async function fetchToken(API_KEY, PASSWORD) {  
+            const response = await fetch("/create_token", {   
+                method: "POST",  
+                headers: {  
+                    "Content-Type": "application/json"  
+                },  
+                body: JSON.stringify({ api_key: API_KEY, password: PASSWORD })  
+            });  
+            const data = await response.json();  
+        
+            sessionStorage.setItem("access_token", data.access_token);  
+            sessionStorage.setItem("token_type", data.type);  
+        } 
+
+  
+        function linkify(text) {  
+            // Convert plain URLs into clickable links  
+            const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;  
+            text = text.replace(urlPattern, '<a href="$1" target="_blank">$1</a>');  
+        
+            // Convert markdown links into clickable links  
+            const markdownUrlPattern = /\[([^\]]+)\]\(([^\)]+)\)/g;  
+            text = text.replace(markdownUrlPattern, '<a href="$2" target="_blank">$1</a>');  
+        
+            return text;  
+        }  
+
+
+        async function submitForm(event) {  
+            event.preventDefault();  
+            // await fetchToken();  
+            checkLoginStatus();  
+        }  
+
+        
+        async function end_session() {  
+            const user_id = sessionStorage.getItem('user_id');  
+            const response = await fetch('/end_session', {  
+                method: 'POST',  
+                headers: {  
+                    'Content-Type': 'application/json'  
+                },  
+                body: JSON.stringify({user_id: user_id})  
+            });  
+        }
+
+        
+        function logout() {  
+            end_session();  
+            sessionStorage.removeItem('chatActive');  // end of a chat session
+            sessionStorage.removeItem('logged_in');  
+            sessionStorage.removeItem('access_token');  // Clear the JWT token  
+            document.getElementById("api_key").value = "";  
+            document.getElementById("password").value = "";  
+            checkLoginStatus();  
+            // Reset the form when the logout button is clicked  
+            document.getElementById("api-key-password-form").reset();   
+        }  
+
+        // Clear the chatActive flag in localStorage when the window/tab is closed or refreshed  
+        window.addEventListener('beforeunload', clearChatActiveFlag); 
+
+        // Increment the chatCounter when the window/tab is opened  
+        incrementChatCounter();
+
+        // Decrement the chatCounter and clear the chatActive flag in sessionStorage when the window/tab is closed or refreshed
+        // Clear tokens during page refresh or closing the tab 
+        window.addEventListener("beforeunload", function (e) {  
+            // end_session();
+            decrementChatCounter(); 
+            console.log('Before removing chatActive:', sessionStorage.getItem('chatActive'));
+            sessionStorage.removeItem('chatActive');
+            console.log('After removing chatActive:', sessionStorage.getItem('chatActive')); 
+            sessionStorage.removeItem("access_token");  // Clear the JWT token
+        });  
+
+        document.addEventListener("DOMContentLoaded", function () {    
+            if (sessionStorage.getItem('chatActive') === 'true') {    
+                alert('You already have an active chat session in another window or tab.');    
+                document.getElementById('user_input').disabled = true;  // disable the input field  
+                document.querySelector('button').disabled = true;  // disable the buttons  
+            }  
+        });  
+
+        document.addEventListener('DOMContentLoaded', checkLoginStatus);  
+
+        window.onload = function() {  
+            document.getElementById("user_input").addEventListener("keypress", function(event) {  
+                if (event.keyCode == 13) { // 13 is the keyCode for the Enter key  
+                    event.preventDefault(); // Prevent the default action (form submission)  
+                    send_message(); // Call your send_message function  
+                }  
+            });  
+        } 
+
+        function extractUrls(text) {  
+            const urlPattern = /\[([^\]]+)\]\(([^)]+)\)/g;  
+            const urls = Array.from(text.matchAll(urlPattern));  
+            return urls.map(url => url[2]);  
+        }  
+
+  
+        async function sendUrlToChat2(url) {  
+
+            //Modify the API key
+            // const API_KEY = document.getElementById("api_key").value;  
+            // const PASSWORD = document.getElementById("password").value;  
+            const API_KEY = "12345"
+            const PASSWORD = "ACEGPT"
+
+
+            await fetchToken(API_KEY, PASSWORD);  // Request a new token for every URL  
+
+        
+            const response = await fetch('/chat_2', {  
+                method: 'POST',  
+                headers: {  
+                    'Content-Type': 'application/json',  
+                    'Authorization': 'Bearer ' + sessionStorage.getItem("access_token"),
+                },  
+                body: JSON.stringify({ user_input_2: url, user_id: sessionStorage.getItem('user_id') })  
+            });  
+        
+            const data = await response.json();  
+
+            // Display the context in the browser  
+            return data;  
+            
+        }  
+
+        async function displayJsonData(data) {    
+            // // Log the data object to the console  
+        
+            // Get the div where we will display the content    
+            let contentDiv = document.getElementById('content');    
+        
+            // Process each source URL  
+            for (let sourceUrl in data) {  
+                
+
+                // Display the text 'Source URL' 
+                let sourceUrlText = document.createTextNode("Source URL: ");  
+                contentDiv.appendChild(sourceUrlText);  
+
+                // Display the actual URL as a hyperlink 
+                let sourceUrlA = document.createElement('a');  
+                sourceUrlA.href = sourceUrl;  
+                sourceUrlA.textContent = sourceUrl; 
+
+                let youtubeUrlPattern = /^https?:\/\/(www\.)?youtube\.com\/watch\?v=([^&]+)(?:&start=(\d+\.\d+))?(?:&end=(\d+\.\d+))?/;  
+
+                let match = youtubeUrlPattern.exec(sourceUrlA);    
+                if (match) { 
+                    // Convert the start time to seconds    
+                    let startTime = match[3] ? Math.round(parseFloat(match[3]) * 60) : 0;
+                        let endTime = match[4] ? Math.round(parseFloat(match[4]) * 60) : 0;     
+        
+                        // Create an iframe for the YouTube video    
+                        let iframe = document.createElement('iframe');    
+                        iframe.src = 'https://www.youtube.com/embed/' + match[2] + '?start=' + startTime + '&end=' + endTime;      
+                        iframe.width = 560;    
+                        iframe.height = 315;    
+                        iframe.frameBorder = 0;    
+                        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';    
+                        iframe.allowFullscreen = true;    
+        
+                        // Add the iframe to the content div    
+                        contentDiv.appendChild(iframe); 
+                    } else {  
+        
+                        // // Add the hyperlink to the div    
+                        // contentDiv.appendChild(a); 
+                        contentDiv.appendChild(sourceUrlA);   
+                    }  
+
+                // contentDiv.appendChild(sourceUrlA); 
+
+                console.log(data[sourceUrl]);  
+
+                // Extract the context string  
+                let context = data[sourceUrl].context;  
+        
+                // Split the context string into separate documents  
+                let documents = context.split("\nDocument ");  
+        
+                // Process each document  
+                for (let i = 1; i < documents.length; i++) {  // Start at 1 to skip the "Source URL" part  
+                    // Parse the document string into a JSON object  
+                    let doc = JSON.parse(documents[i].substring(documents[i].indexOf("{")));  
+        
+                    // Display the document data  
+                    let title = document.createElement('p');      
+                    title.textContent = "Title: " + doc.title;      
+                    contentDiv.appendChild(title);    
+    
+                    let youtubeUrlPattern = /^https?:\/\/(www\.)?youtube\.com\/watch\?v=([^&]+)(?:&start=(\d+\.\d+))?(?:&end=(\d+\.\d+))?/;  
+
+                    let match = youtubeUrlPattern.exec(doc.url);    
+                    if (match) {    
+                        // Convert the start time to seconds    
+                        let startTime = match[3] ? Math.round(parseFloat(match[3]) * 60) : 0;
+                        let endTime = match[4] ? Math.round(parseFloat(match[4]) * 60) : 0;     
+        
+                        // Create an iframe for the YouTube video    
+                        let iframe = document.createElement('iframe');    
+                        iframe.src = 'https://www.youtube.com/embed/' + match[2] + '?start=' + startTime + '&end=' + endTime;      
+                        iframe.width = 560;    
+                        iframe.height = 315;    
+                        iframe.frameBorder = 0;    
+                        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';    
+                        iframe.allowFullscreen = true;    
+        
+                        // Add the iframe to the content div    
+                        contentDiv.appendChild(iframe);    
+                    } else {    
+                        // // Display the actual URL as a hyperlink 
+                    
+                        // Create a hyperlink for the URL    
+                        let a = document.createElement('a');    
+                        a.href = doc.url;    
+                        a.textContent = doc.url;    
+        
+                        // Add the hyperlink to the div    
+                        contentDiv.appendChild(a);    
+                    }    
+        
+                    let physics = document.createElement('p');      
+                    physics.textContent = "Physics: " + doc.physics;      
+                    contentDiv.appendChild(physics);      
+        
+                    let typeOfAsset = document.createElement('p');      
+                    typeOfAsset.textContent = "Type of Asset: " + doc.product;      
+                    contentDiv.appendChild(typeOfAsset);    
+        
+                    let content = document.createElement('p');      
+                    content.textContent = "Content: " + doc.content;      
+                    contentDiv.appendChild(content);      
+        
+                    let assetId = document.createElement('p');      
+                    assetId.textContent = "Asset ID: " + doc.assetId;      
+                    contentDiv.appendChild(assetId);      
+        
+                    contentDiv.appendChild(document.createElement('br'));  // Add a line break between documents  
+                }
+                  
+            }  
+            // Convert the data into a JSON string  
+            let jsonData = JSON.stringify(data);  
+        
+            // Prepare the final response  
+            let finalResponse = {  
+                final_response: finalResponseGlobal,  
+                jsonData: jsonData,  
+                user_id: sessionStorage.getItem('user_id')
+            };  
+        
+            // Convert the final response into a JSON string  
+            let finalResponseJson = JSON.stringify(finalResponse);  
+
+            //Modify the api key in line 642, 643, at the begininhg
+
+            // const API_KEY = document.getElementById("api_key").value;  
+            // const PASSWORD = document.getElementById("password").value; 
+            const API_KEY = "12345"
+            const PASSWORD = "ACEGPT" 
+
+           
+
+
+            await fetchToken(API_KEY, PASSWORD);  // Request a new token for every URL  
+
+            const response = await fetch('/chat_3', {  
+                method: 'POST',  
+                headers: {  
+                    'Content-Type': 'application/json',  
+                    'Authorization': 'Bearer ' + sessionStorage.getItem("access_token"),
+                },  
+                body: JSON.stringify(finalResponse)  
+            });  
+        
+           
+        }  
+
+    </script>  
+</body>  
+</html>  
