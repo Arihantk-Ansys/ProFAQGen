@@ -3,15 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProFAQGen</title>
+    <title>ProFAQgen</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        /* Centering title */
-        #appHeader {
-            text-align: center;
-            margin-bottom: 20px;
+        /* Full-screen Background */
+        body {
+            background-color: #f0f4f8; /* Light grayish blue */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
-        /* Loader Styling */
+
+        /* Centered Main Box */
+        .container {
+            background: #ffffff; /* White background */
+            width: 50%;
+            min-width: 400px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+        .container h2, .container h3 {
+            margin: 5px;
+        }
+
+        /* Loader */
         #loader {
             display: none;
             position: fixed;
@@ -23,38 +46,99 @@
             font-weight: bold;
             padding-top: 20%;
         }
-        /* Hide headers initially */
+
+        /* Hide elements initially */
         .hidden { display: none; }
+
+        /* Input and button styling */
+        textarea, input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #ffbf00;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: black;
+        }
+
+        /* FAQ Styling */
+        .faq-item {
+            text-align: left;
+            width: 90%;
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Accept & Reject Buttons */
+        .acceptBtn, .rejectBtn {
+            margin-left: 10px;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 3px;
+        }
+
+        .acceptBtn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .rejectBtn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .acceptBtn:hover { background-color: #218838; }
+        .rejectBtn:hover { background-color: #c82333; }
+
     </style>
 </head>
 <body>
 
-    <!-- App Header -->
-    <div id="appHeader">
-        <h1>ProFAQGen</h1>
-        <h3>Welcome to the Interactive SR to KM generator Web App!!</h3>
-    </div>
-
-    <h2>Enter Text Data</h2>
-    <textarea id="userInput" rows="5" cols="50"></textarea>
-    <br>
-    <button id="processBtn">Start Processing</button>
-
     <div id="loader">Processing... Please wait.</div>
 
-    <h2 id="summaryHeader" class="hidden">Summary</h2>
-    <p id="summaryText"></p>
+    <div class="container">
+        <!-- App Header -->
+        <h1>ProFAQgen</h1>
+        <h3>Welcome to the Interactive SR to KM Generator App!!</h3>
 
-    <h2 id="faqHeader" class="hidden">Generated FAQs</h2>
-    <div id="faqContainer"></div>
+        <!-- Input Section -->
+        <h2>Enter Case Interaction Data</h2>
+        <textarea id="userInput" rows="5"></textarea>
+        <button id="processBtn">Start Processing</button>
 
-    <h2>Add Your Own FAQ</h2>
-    <input type="text" id="newFaqQuestion" placeholder="Enter question">
-    <input type="text" id="newFaqAnswer" placeholder="Enter answer">
-    <button id="addFaqBtn">Add FAQ</button>
+        <!-- Summary Section -->
+        <h2 id="summaryHeader" class="hidden">Summary</h2>
+        <p id="summaryText"></p>
 
-    <h2>Submit FAQs</h2>
-    <button id="submitFaqsBtn">Submit</button>
+        <!-- FAQs Section -->
+        <h2 id="faqHeader" class="hidden">Generated FAQs</h2>
+        <div id="faqContainer"></div>
+
+        <!-- Add New FAQ -->
+        <h2>Add Your Own FAQ</h2>
+        <input type="text" id="newFaqQuestion" placeholder="Enter question">
+        <input type="text" id="newFaqAnswer" placeholder="Enter answer">
+        <button id="addFaqBtn">Add FAQ</button>
+
+        <!-- Submit FAQs -->
+        <button id="submitFaqsBtn">Submit</button>
+    </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
