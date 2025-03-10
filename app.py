@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import json
+import time
 from modules.text_enrichment import enrich_data, compiler
 from modules.generateFAQ import generate_faq_with_llm
 from modules.PII import OpenAI_PII_removal
@@ -7,11 +8,12 @@ from modules.DiscussionAnalysis import discussion_main, get_report_modes
 
 app = Flask(__name__)
 
-# Route to render index.html
+# Function to generate summary and FAQs
 def generate_summary_and_faqs(body, physics=None, product=None):
     """
-    Generate an FAQ from a given text, where the text consists of a subject, a description, and a discussion. 
+    Generate an FAQ from a given text, where the text consists of a subject, a description, and a discussion.
     Ensure that the body is a single combined string, starting with the subject, followed by the description, and then the sequential interactions or discussions.
+    
     Parameters:
     -----------
     body : str
@@ -20,17 +22,17 @@ def generate_summary_and_faqs(body, physics=None, product=None):
         The physics/family information if available
     product : str, optional
         The product/application information if available
+
     Returns:
     --------
-    str or dict
-        The generated FAQ, either as a JSON string or a Python dictionary
+    dict
+        A dictionary containing the generated summary and FAQs
     """
+    
     # Clean the text to remove PII
     clean_text = OpenAI_PII_removal(body)
     
     # Generate a unique case ID for discussion analysis
-    # Using a timestamp as we don't have real case numbers
-    import time
     case_id = f"temp_{int(time.time())}"
     
     # Analyze the discussion
@@ -42,37 +44,30 @@ def generate_summary_and_faqs(body, physics=None, product=None):
         if classification == 'LLM Data Enrichment':
             # Enrich the data using the physics parameter if provided
             enriched_data = enrich_data(clean_text, physics=physics)
-            data_summarized = True
         elif classification == 'Good to go for Classification Agent':
             # Use compiler function for this classification
             switch = 'prompt2'
             retrieved_data = ''
             enriched_data = compiler(clean_text, retrieved_data, switch)
-            data_summarized = True
         else:
-            print("The discussion is discarded")
-            return None
+            return {"error": "Discussion discarded"}
     else:
-        print("The discussion is open ended")
-        return None
+        return {"error": "Discussion is open-ended"}
     
     # Generate FAQ if data was successfully summarized
-    if data_summarized:
-        # Calculate word count for the enriched data
-        no_words = len(enriched_data.split())
-        
-        # Generate FAQ
-        faq_generated = generate_faq_with_llm(enriched_data, no_words)
-        
-        # Try to parse as JSON, return as is if not JSON
-        try:
-            import json
-            faq_json = json.loads(faq_generated)
-            return faq_json
-        except json.JSONDecodeError:
-            return enriched_data, faq_generated
-        
-    return enriched_data, faq_generated
+    no_words = len(enriched_data.split())
+    faq_generated = generate_faq_with_llm(enriched_data, no_words)
+    
+    # Try to parse FAQ response as JSON
+    try:
+        faq_json = json.loads(faq_generated)
+    except json.JSONDecodeError:
+        faq_json = {"error": "Failed to generate valid FAQ JSON"}
+    
+    return {
+        "summary": enriched_data,
+        "faqs": faq_json
+    }
 
 @app.route('/')
 def index():
@@ -83,16 +78,25 @@ def index():
 def process_text():
     data = request.json
     user_input = data.get("text", "")
-    summary, faqs = generate_summary_and_faqs(user_input)
-    return jsonify({"summary": summary, "faqs": faqs})
+    physics = data.get("physics", None)
+    product = data.get("product", None)
+
+    if not user_input.strip():
+        return jsonify({"error": "Input text cannot be empty"}), 400
+
+    response_data = generate_summary_and_faqs(user_input, physics, product)
+    
+    return jsonify(response_data)
 
 # API to save accepted and user-added FAQs to JSON
 @app.route('/save_faqs', methods=['POST'])
 def save_faqs():
     data = request.json
     accepted_faqs = data.get("accepted_faqs", [])
+
     with open("faqs.json", "w") as f:
         json.dump(accepted_faqs, f, indent=4)
+
     return jsonify({"message": "FAQs saved successfully!"})
 
 if __name__ == '__main__':

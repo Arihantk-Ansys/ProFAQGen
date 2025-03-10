@@ -1,0 +1,76 @@
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 877-306-001
+127.0.0.1 - - [10/Mar/2025 17:33:17] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 17:33:18] "GET /static/script.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 17:33:18] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+127.0.0.1 - - [10/Mar/2025 17:34:52] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 17:34:52] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 17:54:28] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 17:54:28] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 19:01:28] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:01:28] "GET /static/script.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:07:15] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:07:15] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 877-306-001
+127.0.0.1 - - [10/Mar/2025 19:14:31] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:14:47] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:14:47] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 19:15:12] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:15:12] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 19:16:42] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:16:42] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 19:19:06] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:19:06] "GET /static/script.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:19:08] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:19:08] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 19:20:09] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:20:09] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 19:21:28] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:21:28] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 19:22:17] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:22:17] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 19:25:22] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:25:22] "GET /static/script.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:37:15] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:37:15] "GET /static/script.js HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:50:22] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:50:22] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 19:51:11] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:51:11] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 19:51:41] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 19:51:41] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [10/Mar/2025 20:00:16] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 20:00:16] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+ * Detected change in 'C:\\ACEGPT\\ProFAQGen\\modules\\generateFAQ.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 877-306-001
+127.0.0.1 - - [10/Mar/2025 20:27:57] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 20:27:57] "[36mGET /static/script.js HTTP/1.1[0m" 304 -
+ * Detected change in 'C:\\ACEGPT\\ProFAQGen\\app.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 877-306-001
+ * Detected change in 'C:\\ACEGPT\\ProFAQGen\\app.py', reloading
+ * Restarting with stat
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 877-306-001
+127.0.0.1 - - [10/Mar/2025 20:38:38] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [10/Mar/2025 20:38:38] "GET /static/script.js HTTP/1.1" 200 -
+HTTP Request: POST https://ansysaceaiservicegptwestus.openai.azure.com//openai/deployments/gpt-4o/chat/completions?api-version=2024-02-15-preview "HTTP/1.1 200 OK"
+HTTP Request: POST https://ansysaceaiservicegpteastus2.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-05-01-preview "HTTP/1.1 200 OK"
+HTTP Request: POST https://ansysaceaiservicegpteastus2.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-05-01-preview "HTTP/1.1 200 OK"
+127.0.0.1 - - [10/Mar/2025 20:39:25] "[35m[1mPOST /process HTTP/1.1[0m" 500 -
